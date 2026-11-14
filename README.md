@@ -7,6 +7,10 @@ billing, an analytics dashboard and realistic demo data — a foundation you can
 
 ## Demo
 
+[![Watch the narrated demo video](docs/demo-video-poster.jpg)](docs/demo-video.mp4)
+
+**Demo video** (1920×1080, ~50 s, English voice-over and captions): [`docs/demo-video.mp4`](docs/demo-video.mp4)
+
 <p align="center"><img src="docs/walkthrough.gif" alt="Walkthrough: landing, dashboard, customers, customer drawer, team invite, billing, activity" width="820" /></p>
 
 Full-quality video: [`docs/walkthrough.mp4`](docs/walkthrough.mp4) · Demo login: **demo@orbit.dev / demo1234**
