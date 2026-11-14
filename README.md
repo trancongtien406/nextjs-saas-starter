@@ -1,106 +1,111 @@
 # Orbit — Next.js SaaS Starter
 
-A production-style **SaaS MVP foundation** built with Next.js 15, React 19, Drizzle ORM and Stripe, shown as a
-working product: *Orbit*, a revenue-analytics app for subscription businesses. Clone it, run two commands, and you
-have auth, teams, billing, an analytics dashboard and seeded demo data running locally.
+**Launch a subscription SaaS MVP in days, not months.** Orbit is a working revenue-analytics product with auth, teams,
+billing, an analytics dashboard and realistic demo data — a foundation you can clone, rebrand and ship.
 
-![Dashboard](docs/screenshots/dashboard.png)
+![Orbit dashboard with MRR chart, tooltip and previous-period comparison](docs/screenshots/dashboard-tooltip.png)
 
-<p align="center"><img src="docs/walkthrough.gif" alt="Walkthrough: landing, sign-in, dashboard, customers, team, billing" width="800" /></p>
+## Demo
+
+<p align="center"><img src="docs/walkthrough.gif" alt="Walkthrough: landing, dashboard, customers, customer drawer, team invite, billing, activity" width="820" /></p>
+
+Full-quality video: [`docs/walkthrough.mp4`](docs/walkthrough.mp4) · Demo login: **demo@orbit.dev / demo1234**
+
+| Customer detail drawer | Team roles & invitations |
+| --- | --- |
+| ![](docs/screenshots/customer-drawer.png) | ![](docs/screenshots/team-invite.png) |
+| **Billing & invoices** | **Landing page** |
+| ![](docs/screenshots/billing-invoices.png) | ![](docs/screenshots/landing.png) |
+
+More: [customers](docs/screenshots/customers.png) · [activity log](docs/screenshots/activity.png) ·
+[settings](docs/screenshots/settings.png) · [pricing](docs/screenshots/pricing.png) · [sign-in](docs/screenshots/sign-in.png) ·
+[mobile landing](docs/screenshots/landing-mobile.png) · [full dashboard](docs/screenshots/dashboard-full.png)
+
+## The business problem
+
+Founders who want to validate a SaaS idea spend their first weeks rebuilding the same plumbing: login, workspaces,
+roles, Stripe, a dashboard that looks credible to the first customers. Orbit ships that plumbing already wired together
+and presented as a real product, so the budget goes into the features that make the idea different.
 
 ## Features
 
 | Area | What's included |
 | --- | --- |
-| **Marketing site** | Landing page (hero, product preview, features, pricing, testimonials, FAQ, CTA), pricing page, responsive down to mobile |
+| **Marketing site** | Customer-focused landing page (hero, product preview, benefits, pricing, testimonials, FAQ, CTA), pricing page, responsive to mobile |
 | **Auth** | Email/password sign-up & sign-in, bcrypt hashing, signed JWT session cookie (`jose`), middleware route protection, safe `?next=` redirects |
 | **Teams & roles** | Workspaces with Owner / Admin / Member, invitations, seat limits per plan, member removal |
-| **Billing** | Stripe Checkout + customer portal + signed webhook (`/api/stripe/webhook`). **Demo billing mode** when no Stripe keys are set, so the full flow works offline |
-| **Dashboard** | MRR, active customers, churn, ARPA with month-over-month deltas, 12-month MRR chart, growth chart, revenue by plan, latest customers |
-| **Customers** | Server-side search, status filters and pagination over 312 seeded customers |
-| **Activity log** | Audit trail of plan changes, invitations, settings updates |
-| **Settings** | Profile and workspace rename with server actions + form state |
-| **Data** | Drizzle ORM on SQLite (zero setup). Schema works with Postgres (Neon/Supabase) by swapping the driver |
+| **Billing** | Stripe Checkout + customer portal + signed webhook. **Demo billing mode** without Stripe keys, so the whole flow works offline; invoice history |
+| **Revenue dashboard** | MRR, active customers, churn and ARPA with month-over-month deltas; MRR chart with 3M / 6M / 12M ranges, previous-period comparison, grid and year-over-year tooltip; growth chart; revenue by plan |
+| **Customers** | Server-side search, status filters, pagination, health column, and a **detail drawer** with avatar, health score, LTV, payment history and subscription timeline |
+| **Activity log** | Audit trail of plan changes, invitations and settings updates |
 | **Quality** | TypeScript strict, Vitest unit tests, Playwright smoke test, reproducible screenshot script |
 
-## Quick start
+## Results (verified locally)
 
-```bash
-pnpm install
-pnpm db:seed      # creates data/app.db with a realistic demo workspace
-pnpm dev          # http://localhost:3000
-```
+- `pnpm build` passes (Next.js 15.5, production build)
+- **13/13** unit tests pass (plans, sessions, redirects, health score, utils)
+- E2E smoke test passes: anonymous redirect → sign-up → empty state → invite → seat limit → upgrade (demo billing) → activity entry → wrong-password rejection
+- Seeded workspace: 312 customers, 24 months of metrics with realistic variance, payment history and lifecycle events
 
-Sign in with **demo@orbit.dev / demo1234** (workspace *Northwind Labs*, Pro plan, 312 customers, 12 months of metrics),
-or create a new account to see the empty state and the Starter plan limits.
+## Architecture
 
-### Stripe (optional, test mode)
-
-```bash
-cp .env.example .env.local
-# STRIPE_SECRET_KEY=sk_test_..., STRIPE_PRICE_PRO=price_..., STRIPE_PRICE_BUSINESS=price_...
-stripe listen --forward-to localhost:3000/api/stripe/webhook   # gives STRIPE_WEBHOOK_SECRET
-```
-
-With keys present, "Upgrade" buttons go to Stripe Checkout and the webhook updates the workspace plan. Without keys,
-plan changes apply instantly and generate a paid invoice (demo mode).
-
-## Screenshots
-
-| Landing | Sign in |
+| Layer | Choice |
 | --- | --- |
-| ![](docs/screenshots/landing.png) | ![](docs/screenshots/sign-in.png) |
-| **Customers** (search, filters, pagination) | **Team** (roles, invitations, seats) |
-| ![](docs/screenshots/customers.png) | ![](docs/screenshots/team.png) |
-| **Billing** (plans, payment method, invoices) | **Activity log** |
-| ![](docs/screenshots/billing.png) | ![](docs/screenshots/activity.png) |
-| **Pricing** | **Settings** |
-| ![](docs/screenshots/pricing.png) | ![](docs/screenshots/settings.png) |
-
-Mobile landing: [`docs/screenshots/landing-mobile.png`](docs/screenshots/landing-mobile.png) · Full landing page: [`docs/screenshots/landing-full.png`](docs/screenshots/landing-full.png)
-
-## Project structure
+| Framework | Next.js 15 App Router, React 19 server components + server actions |
+| UI | Tailwind CSS v4, Lucide icons, Recharts |
+| Data | **Drizzle ORM + SQLite** (`better-sqlite3`, zero setup). **Postgres is optional**: the schema is portable, but switching to Neon/Supabase means changing the Drizzle driver and running migrations — not done in this repo |
+| Auth | JWT cookie via `jose`, bcrypt passwords, middleware guard |
+| Payments | Stripe SDK (optional) with webhook; demo mode when keys are absent |
 
 ```
-src/app/(auth)/            sign-in, sign-up (split layout)
-src/app/dashboard/         overview, customers, team, billing, activity, settings
+src/app/(auth)/            sign-in, sign-up
+src/app/dashboard/         overview, customers (+ drawer), team, billing, activity, settings
 src/app/api/stripe/webhook signed Stripe webhook
 src/lib/db/                Drizzle schema + idempotent SQLite bootstrap
 src/lib/auth/              JWT session, password hashing, current user/team guard
 src/lib/actions/           server actions (auth, team, billing, settings)
 src/lib/queries.ts         typed dashboard queries
-src/lib/plans.ts           single source of truth for plans, seats and prices
+src/lib/health.ts          customer health score
 scripts/seed.ts            deterministic demo data
 scripts/smoke.mjs          end-to-end smoke test (Playwright)
 scripts/screenshots.mjs    regenerates docs/screenshots
 ```
 
-## Scripts
+## Quick start & tests
+
+```bash
+pnpm install
+pnpm db:seed      # creates data/app.db with the demo workspace
+pnpm dev          # http://localhost:3000
+```
 
 | Command | Description |
 | --- | --- |
-| `pnpm dev` / `pnpm build && pnpm start` | run the app |
-| `pnpm db:seed` | reset and seed the SQLite database |
-| `pnpm test` | unit tests (plans, sessions, redirects, utils) |
+| `pnpm build && pnpm start` | production run |
+| `pnpm test` | unit tests |
 | `pnpm smoke` | E2E smoke test against a running server (`APP_URL`, `CHROME_PATH`) |
-| `pnpm screenshots` | regenerate README screenshots |
+| `pnpm screenshots` | regenerate README screenshots (`BASE`, `CHROME_PATH`) |
 
-## Verified locally
+**Stripe (optional, test mode):** copy `.env.example` to `.env.local`, add `STRIPE_SECRET_KEY`, `STRIPE_PRICE_PRO`,
+`STRIPE_PRICE_BUSINESS`, then `stripe listen --forward-to localhost:3000/api/stripe/webhook` for `STRIPE_WEBHOOK_SECRET`.
 
-`pnpm build` passes, 9/9 unit tests pass, and the smoke test covers: anonymous redirect → sign-up → empty state →
-invite teammate → Starter seat limit → upgrade to Business (demo billing) → activity log entry → wrong-password rejection.
+## Limitations & roadmap
 
-## Credits
+- SQLite is ideal for demos and small deployments; use Postgres for multi-instance hosting (driver swap + migrations)
+- No email delivery yet — invitations are stored and listed, not emailed (Resend/Postmark integration planned)
+- No OAuth / magic-link login yet
+- Demo metrics are seeded; connecting real Stripe data to the analytics views is a customization step
+- Roadmap: Postgres adapter, email invites, OAuth, usage-based billing, CSV export
 
-Architecture inspired by the official [nextjs/saas-starter](https://github.com/nextjs/saas-starter) (MIT) — this is an
-independent implementation with SQLite, demo billing mode, analytics views and seeded data. Icons by
-[Lucide](https://lucide.dev) (ISC), charts by [Recharts](https://recharts.org) (MIT). All names and companies in the demo data are fictional.
+## Credits & license
 
-## License
+Architecture inspired by [nextjs/saas-starter](https://github.com/nextjs/saas-starter) (MIT) — this is an independent
+implementation. Icons by [Lucide](https://lucide.dev) (ISC), charts by [Recharts](https://recharts.org) (MIT).
+All names and companies in the demo data are fictional.
 
 MIT © Tran Cong Tien
 
 ---
 
-**Need your SaaS MVP built on this stack — auth, payments, dashboard, deployed?**
+**Need your SaaS MVP built — auth, payments, dashboard, ready for your first customers?**
 Hire me on Fiverr: [fiverr.com/optimus2003](https://www.fiverr.com/optimus2003)

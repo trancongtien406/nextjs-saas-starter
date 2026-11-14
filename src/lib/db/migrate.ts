@@ -31,6 +31,11 @@ export function ensureSchema(sqlite: Database.Database) {
       id INTEGER PRIMARY KEY AUTOINCREMENT, team_id INTEGER NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
       number TEXT NOT NULL, plan TEXT NOT NULL, amount_cents INTEGER NOT NULL, status TEXT NOT NULL,
       created_at INTEGER NOT NULL);
+    CREATE TABLE IF NOT EXISTS customer_events (
+      id INTEGER PRIMARY KEY AUTOINCREMENT, team_id INTEGER NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+      customer_id INTEGER NOT NULL REFERENCES customers(id) ON DELETE CASCADE, type TEXT NOT NULL, detail TEXT NOT NULL,
+      amount_cents INTEGER NOT NULL DEFAULT 0, created_at INTEGER NOT NULL);
+    CREATE INDEX IF NOT EXISTS customer_events_idx ON customer_events(customer_id, created_at);
     CREATE TABLE IF NOT EXISTS activity_logs (
       id INTEGER PRIMARY KEY AUTOINCREMENT, team_id INTEGER NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
       user_id INTEGER REFERENCES users(id) ON DELETE SET NULL, action TEXT NOT NULL, detail TEXT NOT NULL,

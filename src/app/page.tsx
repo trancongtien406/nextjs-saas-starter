@@ -5,12 +5,12 @@ import { ButtonLink } from "@/components/ui/button";
 import { ArrowRight, BarChart3, CreditCard, Lock, Users, Zap, Database, Star } from "lucide-react";
 
 const features = [
-  { icon: Lock, title: "Auth & sessions", text: "Email/password sign-up, bcrypt hashing, signed JWT cookies and route protection in middleware." },
-  { icon: Users, title: "Teams & roles", text: "Workspaces with Owner, Admin and Member roles, invitations and seat limits per plan." },
-  { icon: CreditCard, title: "Stripe billing", text: "Checkout, customer portal and a signed webhook. Works in demo mode until you add test keys." },
-  { icon: BarChart3, title: "Analytics dashboard", text: "MRR, churn, ARPA and growth charts on top of real queries — not hard-coded numbers." },
-  { icon: Database, title: "Typed database", text: "Drizzle ORM with SQLite out of the box. Swap to Postgres (Neon, Supabase) in one file." },
-  { icon: Zap, title: "Fast by default", text: "Next.js App Router, React Server Components and server actions. No client-side data fetching boilerplate." },
+  { icon: BarChart3, title: "MRR you can trust", text: "Monthly recurring revenue, growth and year-over-year comparison, updated from your billing data." },
+  { icon: Zap, title: "Churn early warnings", text: "Health scores flag customers with failed payments or falling usage before they cancel." },
+  { icon: Users, title: "Every customer in one place", text: "Plan, payments, lifetime value and a full subscription timeline for each account." },
+  { icon: CreditCard, title: "Billing that just works", text: "Connect Stripe in minutes. Upgrades, invoices and the customer portal are handled for you." },
+  { icon: Lock, title: "Built for teams", text: "Invite finance, sales and support with Owner, Admin and Member roles and an audit log." },
+  { icon: Database, title: "Your data, exportable", text: "Export customers and reports to CSV any time. No lock-in." },
 ];
 
 const testimonials = [
@@ -20,10 +20,10 @@ const testimonials = [
 ];
 
 const faqs = [
-  ["Can I use my own database?", "Yes. SQLite is the default for zero-setup local runs; the Drizzle schema works with Postgres by switching the driver."],
-  ["Do I need Stripe to try it?", "No. Without keys the app runs in demo billing mode. Add STRIPE_SECRET_KEY and price IDs to use real Checkout in test mode."],
-  ["Is it production ready?", "It covers the foundations — auth, teams, billing, dashboard, activity log. You add your product features on top."],
-  ["Can you customise it for my idea?", "Yes — that's what I do on Fiverr: MVPs on this stack, delivered with a clean repo and deployment guide."],
+  ["How does Orbit get my data?", "Connect your Stripe account (read-only) or import a CSV. Your dashboard is ready in a few minutes."],
+  ["What is a customer health score?", "A 0–100 score built from plan, tenure, upgrades and failed payments, so you know who needs attention first."],
+  ["Can my whole team use it?", "Yes. Pro includes 10 seats and Business 50, with Owner, Admin and Member roles."],
+  ["Can I cancel anytime?", "Yes. Manage or cancel your plan from the billing page; you keep access until the end of the period."],
 ];
 
 export default function Home() {
@@ -35,13 +35,13 @@ export default function Home() {
           <div className="bg-grid absolute inset-0 [mask-image:radial-gradient(ellipse_at_top,black_30%,transparent_70%)]" />
           <div className="relative mx-auto max-w-6xl px-6 pb-24 pt-20 text-center">
             <a href="#features" className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-xs font-medium text-brand-700">
-              <span className="rounded-full bg-brand-600 px-1.5 py-0.5 text-[10px] text-white">NEW</span> Teams, roles &amp; Stripe billing included <ArrowRight className="h-3 w-3" />
+              <span className="rounded-full bg-brand-600 px-1.5 py-0.5 text-[10px] text-white">NEW</span> Customer health scores are here <ArrowRight className="h-3 w-3" />
             </a>
             <h1 className="mx-auto mt-6 max-w-3xl text-5xl font-bold tracking-tight text-slate-900 md:text-6xl">
-              Revenue analytics for <span className="bg-gradient-to-r from-brand-600 to-violet-600 bg-clip-text text-transparent">subscription businesses</span>
+              Understand your revenue. <span className="bg-gradient-to-r from-brand-600 to-violet-600 bg-clip-text text-transparent">Grow with confidence.</span>
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-slate-600">
-              Orbit shows MRR, churn and customer health in one dashboard. Built on a production-grade Next.js starter with auth, teams and Stripe billing.
+              Orbit turns your subscription data into clear answers: how much you earn every month, who is about to churn, and which customers to talk to today.
             </p>
             <div className="mt-10 flex justify-center gap-3">
               <ButtonLink href="/sign-up" size="lg">Start free trial <ArrowRight className="h-4 w-4" /></ButtonLink>
@@ -61,8 +61,8 @@ export default function Home() {
 
         <section id="features" className="mx-auto max-w-6xl px-6 py-24">
           <div className="max-w-2xl">
-            <p className="text-sm font-semibold text-brand-600">Everything you rebuild on day one</p>
-            <h2 className="mt-2 text-3xl font-bold tracking-tight md:text-4xl">Ship the product, not the plumbing</h2>
+            <p className="text-sm font-semibold text-brand-600">Why teams switch to Orbit</p>
+            <h2 className="mt-2 text-3xl font-bold tracking-tight md:text-4xl">Stop guessing. Start knowing.</h2>
           </div>
           <div className="mt-12 grid gap-6 md:grid-cols-3">
             {features.map(({ icon: Icon, title, text }) => (
@@ -113,11 +113,11 @@ export default function Home() {
         <section className="px-6 pb-24">
           <div className="relative mx-auto max-w-5xl overflow-hidden rounded-3xl bg-slate-900 px-8 py-16 text-center">
             <div className="absolute -top-24 left-1/2 h-64 w-[36rem] -translate-x-1/2 rounded-full bg-brand-600/40 blur-3xl" />
-            <h2 className="relative text-3xl font-bold tracking-tight text-white md:text-4xl">Launch your SaaS this month</h2>
-            <p className="relative mx-auto mt-4 max-w-xl text-slate-300">Auth, teams, billing and analytics are done. Spend your time on what makes your product unique.</p>
+            <h2 className="relative text-3xl font-bold tracking-tight text-white md:text-4xl">See your real numbers in five minutes</h2>
+            <p className="relative mx-auto mt-4 max-w-xl text-slate-300">Free on Starter. Upgrade when Orbit pays for itself.</p>
             <div className="relative mt-8 flex justify-center gap-3">
               <ButtonLink href="/sign-up" size="lg">Get started free</ButtonLink>
-              <ButtonLink href="https://www.fiverr.com/optimus2003" size="lg" variant="secondary">Hire the developer</ButtonLink>
+              <ButtonLink href="/sign-in" size="lg" variant="secondary">See the live demo</ButtonLink>
             </div>
           </div>
         </section>

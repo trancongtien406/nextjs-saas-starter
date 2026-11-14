@@ -68,6 +68,16 @@ export const invoices = sqliteTable("invoices", {
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 });
 
+export const customerEvents = sqliteTable("customer_events", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  teamId: integer("team_id").notNull().references(() => teams.id),
+  customerId: integer("customer_id").notNull().references(() => customers.id),
+  type: text("type").notNull(),
+  detail: text("detail").notNull(),
+  amountCents: integer("amount_cents").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+});
+
 export const activityLogs = sqliteTable("activity_logs", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   teamId: integer("team_id").notNull().references(() => teams.id),

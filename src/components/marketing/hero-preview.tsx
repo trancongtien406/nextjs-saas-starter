@@ -1,9 +1,9 @@
 /* Static, lightweight product preview for the landing page (pure SVG, no chart lib). */
-const points = [18, 22, 21, 27, 30, 29, 35, 41, 40, 47, 53, 61];
+const points = [15.2, 15.5, 16.7, 18.3, 18.9, 18.1, 18.3, 19.7, 20.7, 21.3, 23.2, 24.7];
 
 export function HeroPreview() {
-  const w = 560, h = 180, max = 65;
-  const xy = points.map((p, i) => [(i / (points.length - 1)) * w, h - (p / max) * h]);
+  const w = 560, h = 180, max = 26;
+  const xy = points.map((p, i) => [(i / (points.length - 1)) * w, h - ((p - 13) / (max - 13)) * h * 0.92]);
   const line = xy.map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
   return (
     <div className="relative mx-auto mt-16 max-w-5xl">
@@ -21,7 +21,7 @@ export function HeroPreview() {
           </div>
           <div className="p-6">
             <div className="grid grid-cols-4 gap-4">
-              {[["MRR", "$24,678", "+6.5%"], ["Active customers", "264", "+7.3%"], ["Net new MRR", "$1,504", "+18%"], ["Trials", "6", "+2"]].map(([k, v, d]) => (
+              {[["MRR", "$24,678", "+6.2%"], ["Active customers", "264", "+6.0%"], ["Avg. revenue / account", "$93", "+0.2%"], ["Active trials", "6", "+2"]].map(([k, v, d]) => (
                 <div key={k} className="rounded-xl border border-slate-100 p-4">
                   <p className="text-xs text-slate-500">{k}</p>
                   <p className="mt-1 text-xl font-semibold tracking-tight">{v}</p>

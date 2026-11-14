@@ -12,7 +12,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <div className="absolute bottom-0 right-0 h-96 w-96 rounded-full bg-violet-500/30 blur-3xl" />
         <div className="relative flex h-full flex-col justify-end p-16 text-white">
           <div className="mb-10 grid grid-cols-2 gap-4">
-            {[["$24.7k", "MRR this month"], ["+6.5%", "Month over month"], ["264", "Active customers"], ["2.0%", "Monthly churn"]].map(([v, k]) => (
+            {[["$24.7k", "MRR this month"], ["+6.2%", "Month over month"], ["264", "Active customers"], ["$93", "Avg. revenue per account"]].map(([v, k]) => (
               <div key={k} className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur">
                 <p className="text-2xl font-semibold">{v}</p><p className="mt-1 text-sm text-slate-300">{k}</p>
               </div>

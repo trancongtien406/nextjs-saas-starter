@@ -5,8 +5,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "Orbit — Revenue analytics for subscription businesses",
-  description: "Next.js SaaS starter: auth, teams, Stripe billing, dashboard. Built by Tran Cong Tien.",
+  title: "Orbit — Understand your revenue. Grow with confidence.",
+  description: "Revenue analytics for subscription businesses: MRR, churn and customer health in one dashboard.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

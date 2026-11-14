@@ -47,3 +47,12 @@ export function listActivity(teamId: number, limit = 50) {
 export function listInvoices(teamId: number) {
   return db.select().from(invoices).where(eq(invoices.teamId, teamId)).orderBy(desc(invoices.createdAt)).all();
 }
+
+export function getCustomerDetail(teamId: number, id: number) {
+  const customer = db.select().from(customers).where(and(eq(customers.teamId, teamId), eq(customers.id, id))).get();
+  if (!customer) return null;
+  const events = db.select().from(schema.customerEvents)
+    .where(and(eq(schema.customerEvents.teamId, teamId), eq(schema.customerEvents.customerId, id)))
+    .orderBy(desc(schema.customerEvents.createdAt)).all();
+  return { customer, events };
+}

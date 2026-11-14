@@ -1,13 +1,15 @@
 import { PageHeader } from "@/components/dashboard/page-header";
 import { StatCard } from "@/components/dashboard/stat-card";
-import { GrowthChart, MrrChart } from "@/components/dashboard/charts";
+import { GrowthChart } from "@/components/dashboard/charts";
+import { MrrPanel } from "@/components/dashboard/mrr-panel";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge, statusTone } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { requireUser } from "@/lib/auth/current";
 import { getOverview } from "@/lib/queries";
 import { formatMoney, percentChange } from "@/lib/plans";
-import { initials, timeAgo } from "@/lib/utils";
+import { timeAgo } from "@/lib/utils";
+import { Avatar } from "@/components/dashboard/avatar";
 import { DollarSign, Download, TrendingDown, Users, Wallet } from "lucide-react";
 
 export const metadata = { title: "Overview — Orbit" };
@@ -23,6 +25,8 @@ export default async function Overview() {
   const prevChurn = prev && metrics.at(-3) ? (prev.churnedCustomers / metrics.at(-3)!.activeCustomers) * 100 : churnRate;
   const arpa = active ? Math.round(mrr / active / 100) * 100 : 0;
   const prevArpa = prev && prevActive ? Math.round(prev.mrrCents / prevActive / 100) * 100 : 0;
+  const last12 = metrics.slice(-12);
+  const prev12 = metrics.slice(-24, -12);
   const totalPlanMrr = byPlan.reduce((a, p) => a + p.mrr, 0) || 1;
   const hour = new Date().getHours();
 
@@ -48,13 +52,9 @@ export default async function Overview() {
           </div>
 
           <div className="mt-6 grid gap-6 xl:grid-cols-3">
-            <Card className="xl:col-span-2">
-              <CardHeader>
-                <div><CardTitle>Monthly recurring revenue</CardTitle><CardDescription>Last 12 months · {formatMoney(Math.round((mrr - (metrics[0]?.mrrCents ?? 0)) / 100) * 100)} net new MRR</CardDescription></div>
-                <div className="flex rounded-lg bg-slate-100 p-1 text-xs font-medium"><span className="rounded-md bg-white px-2.5 py-1 shadow-sm">12M</span><span className="px-2.5 py-1 text-slate-500">6M</span><span className="px-2.5 py-1 text-slate-500">30D</span></div>
-              </CardHeader>
-              <CardContent><MrrChart data={metrics.map((m) => ({ month: m.month, mrr: m.mrrCents / 100 }))} /></CardContent>
-            </Card>
+            <div className="xl:col-span-2">
+              <MrrPanel data={last12.map((m, i) => ({ month: m.month, mrr: m.mrrCents / 100, prev: prev12[i] ? prev12[i].mrrCents / 100 : null }))} />
+            </div>
             <Card>
               <CardHeader><div><CardTitle>Revenue by plan</CardTitle><CardDescription>Share of active MRR</CardDescription></div></CardHeader>
               <CardContent className="space-y-4">
@@ -78,7 +78,7 @@ export default async function Overview() {
           <div className="mt-6 grid gap-6 xl:grid-cols-3">
             <Card>
               <CardHeader><div><CardTitle>Customer growth</CardTitle><CardDescription>New vs churned per month</CardDescription></div></CardHeader>
-              <CardContent><GrowthChart data={metrics.map((m) => ({ month: m.month, added: m.newCustomers, churned: m.churnedCustomers }))} /></CardContent>
+              <CardContent><GrowthChart data={last12.map((m) => ({ month: m.month, added: m.newCustomers, churned: m.churnedCustomers }))} /></CardContent>
             </Card>
             <Card className="xl:col-span-2">
               <CardHeader><div><CardTitle>Latest customers</CardTitle><CardDescription>Most recent sign-ups</CardDescription></div><ButtonLink href="/dashboard/customers" variant="ghost" size="sm">View all</ButtonLink></CardHeader>
@@ -87,7 +87,7 @@ export default async function Overview() {
                   <tbody className="divide-y divide-slate-100">
                     {recent.map((c) => (
                       <tr key={c.id} className="hover:bg-slate-50/70">
-                        <td className="px-6 py-3"><div className="flex items-center gap-3"><span className="grid h-8 w-8 place-items-center rounded-full bg-brand-50 text-xs font-semibold text-brand-700">{initials(c.name)}</span><div><p className="font-medium">{c.name}</p><p className="text-xs text-slate-500">{c.company}</p></div></div></td>
+                        <td className="px-6 py-3"><div className="flex items-center gap-3"><Avatar name={c.name} size="sm" /><div><p className="font-medium">{c.name}</p><p className="text-xs text-slate-500">{c.company}</p></div></div></td>
                         <td className="px-3 py-3 text-slate-600">{c.plan}</td>
                         <td className="px-3 py-3"><Badge tone={statusTone(c.status)}>{c.status.replace("_", " ")}</Badge></td>
                         <td className="px-3 py-3 text-right font-medium">{formatMoney(c.mrrCents)}</td>

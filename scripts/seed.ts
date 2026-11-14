@@ -66,23 +66,63 @@ const tx = db.transaction(() => {
 });
 tx();
 
-// monthly metrics, last 12 months: a smooth growth curve that ends exactly at the real MRR of active customers
+// monthly metrics, last 24 months (12 shown + 12 for "previous period" comparison).
+// Growth has realistic variance (a summer dip, a strong launch month) and ends exactly at the live MRR.
 const liveMrr = (db.prepare(`SELECT SUM(mrr_cents) v FROM customers WHERE team_id=? AND status IN ('active','past_due')`).get(teamId) as { v: number }).v;
-const growth: number[] = [];
-for (let m = 0; m < 12; m++) growth.push(1.055 + rnd() * 0.05);
+const MONTHS = 24;
+const shape = [0.06, 0.03, 0.08, 0.02, -0.03, 0.05, 0.09, 0.01, 0.04, 0.07, -0.02, 0.05,
+               0.06, 0.02, 0.07, 0.10, 0.03, -0.04, 0.01, 0.08, 0.05, 0.03, 0.09, 0.065];
+const series: number[] = new Array(MONTHS);
 let mrr = liveMrr;
-const series: number[] = [];
-for (let m = 0; m < 12; m++) { series.unshift(Math.round(mrr)); mrr /= growth[m]; }
+for (let i = MONTHS - 1; i >= 0; i--) { series[i] = Math.round(mrr); mrr /= 1 + shape[i] + (rnd() - 0.5) * 0.01; }
 const liveActive = (db.prepare(`SELECT COUNT(*) v FROM customers WHERE team_id=? AND status='active'`).get(teamId) as { v: number }).v;
 const added: number[] = [], churned: number[] = [], active: number[] = [];
-for (let i = 0; i < 12; i++) { added.push(8 + Math.floor(rnd() * 6) + i); churned.push(2 + Math.floor(rnd() * 4)); }
-let a = liveActive;
-for (let i = 11; i >= 0; i--) { active[i] = a; a = a - added[i] + churned[i]; }
-for (let i = 0; i < 12; i++) {
-  const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - (11 - i), 1));
-  ins(`INSERT INTO monthly_metrics (team_id, month, mrr_cents, new_customers, churned_customers, active_customers, active_users) VALUES (?,?,?,?,?,?,?)`,
-    teamId, d.toISOString().slice(0, 7), series[i], added[i], churned[i], active[i], 2400 + i * 310 + Math.floor(rnd() * 250));
+for (let i = 0; i < MONTHS; i++) {
+  added.push(Math.max(3, Math.round(4 + i * 0.6 + shape[i] * 90 + rnd() * 4)));
+  churned.push(2 + Math.floor(rnd() * 4) + (shape[i] < 0 ? 3 : 0));
 }
+// scale sign-ups so the workspace starts with ~70 customers two years ago and ends at the live count
+const startActive = 70;
+const sumChurn = churned.reduce((x, y) => x + y, 0), sumAdd = added.reduce((x, y) => x + y, 0);
+const k = (liveActive - startActive + sumChurn) / sumAdd;
+for (let i = 0; i < MONTHS; i++) added[i] = Math.max(1, Math.round(added[i] * k));
+let a = startActive;
+for (let i = 0; i < MONTHS; i++) { a = a + added[i] - churned[i]; active[i] = a; }
+added[MONTHS - 1] += liveActive - active[MONTHS - 1];
+active[MONTHS - 1] = liveActive;
+for (let i = 0; i < MONTHS; i++) {
+  const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - (MONTHS - 1 - i), 1));
+  ins(`INSERT INTO monthly_metrics (team_id, month, mrr_cents, new_customers, churned_customers, active_customers, active_users) VALUES (?,?,?,?,?,?,?)`,
+    teamId, d.toISOString().slice(0, 7), series[i], added[i], churned[i], active[i], 1500 + i * 180 + Math.floor(rnd() * 250));
+}
+
+// per-customer billing history: subscription events + monthly payments (powers the customer drawer)
+const evStmt = db.prepare(`INSERT INTO customer_events (team_id, customer_id, type, detail, amount_cents, created_at) VALUES (?,?,?,?,?,?)`);
+const custs = db.prepare(`SELECT id, plan, mrr_cents, status, created_at FROM customers WHERE team_id=?`).all(teamId) as
+  { id: number; plan: string; mrr_cents: number; status: string; created_at: number }[];
+const nowSec = Math.floor(now.getTime() / 1000);
+db.transaction(() => {
+  for (const c of custs) {
+    const start = c.created_at;
+    evStmt.run(teamId, c.id, "signup", "Signed up from the pricing page", 0, start);
+    evStmt.run(teamId, c.id, "trial_started", "Started 14-day free trial", 0, start + 60);
+    if (c.status === "trialing") continue;
+    const converted = start + 14 * 86400;
+    if (converted > nowSec) continue;
+    const price = c.mrr_cents || 4900;
+    const firstPlan = c.plan === "Enterprise" ? "Scale" : c.plan === "Scale" ? "Growth" : c.plan;
+    evStmt.run(teamId, c.id, "converted", `Converted to ${firstPlan}`, 0, converted);
+    const upgradeAt = firstPlan !== c.plan ? converted + Math.floor((nowSec - converted) * 0.55) : 0;
+    if (upgradeAt) evStmt.run(teamId, c.id, "upgraded", `Upgraded ${firstPlan} → ${c.plan}`, 0, upgradeAt);
+    const churnAt = c.status === "churned" ? converted + Math.floor((nowSec - converted) * (0.4 + rnd() * 0.5)) : Infinity;
+    for (let t = converted, k = 0; t < Math.min(nowSec, churnAt); t += 30 * 86400, k++) {
+      const amount = upgradeAt && t < upgradeAt ? Math.round(price * 0.4 / 100) * 100 : price;
+      const lastFailed = c.status === "past_due" && t + 30 * 86400 >= nowSec;
+      evStmt.run(teamId, c.id, lastFailed ? "payment_failed" : "payment_succeeded", lastFailed ? "Card declined (insufficient funds)" : "Invoice paid", amount, t + 3600);
+    }
+    if (c.status === "churned") evStmt.run(teamId, c.id, "churned", rnd() < 0.5 ? "Canceled: switched to a competitor" : "Canceled: no longer needed", 0, churnAt);
+  }
+})();
 
 // invoices: Starter for 2 months, then Pro
 for (let m = 11; m >= 0; m--) {
@@ -106,4 +146,4 @@ const actions: [number, string, string, number][] = [
 for (const [u, a, d, ago] of actions) {
   ins(`INSERT INTO activity_logs (team_id, user_id, action, detail, created_at) VALUES (?,?,?,?,?)`, teamId, userIds[u], a, d, daysAgo(ago));
 }
-console.log(`Seeded ${file}\n  login: demo@orbit.dev / demo1234\n  team: Northwind Labs (Pro), 312 customers, 12 months of metrics`);
+console.log(`Seeded ${file}\n  login: demo@orbit.dev / demo1234\n  team: Northwind Labs (Pro), 312 customers, 24 months of metrics + billing history`);

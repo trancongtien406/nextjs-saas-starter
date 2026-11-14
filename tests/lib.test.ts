@@ -51,3 +51,16 @@ describe("utils", () => {
   });
   it("builds initials", () => expect(initials("Linh Tran")).toBe("LT"));
 });
+
+import { healthLabel, healthScore } from "../src/lib/health";
+
+describe("health score", () => {
+  const base = { status: "active", plan: "Growth", tenureDays: 365, failedPayments: 0, upgrades: 0 };
+  it("rates long-standing active customers as healthy", () => expect(healthLabel(healthScore(base)).label).toBe("Healthy"));
+  it("penalises failed payments", () => expect(healthScore({ ...base, status: "past_due", failedPayments: 1 })).toBeLessThan(50));
+  it("churned customers are at risk", () => expect(healthLabel(healthScore({ ...base, status: "churned" })).tone).toBe("red"));
+  it("stays within 0-100", () => {
+    expect(healthScore({ ...base, upgrades: 9, tenureDays: 9999, plan: "Enterprise" })).toBeLessThanOrEqual(100);
+    expect(healthScore({ ...base, status: "past_due", failedPayments: 9 })).toBeGreaterThanOrEqual(0);
+  });
+});
