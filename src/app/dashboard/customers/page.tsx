@@ -28,7 +28,7 @@ export default async function Customers({ searchParams }: { searchParams: Promis
   };
   return (
     <>
-      <PageHeader title="Customers" description={`${total.toLocaleString("en-US")} customers match your filters.`}>
+      <PageHeader title="Customers" description={`${total.toLocaleString("en-US")} ${total === 1 ? "customer matches" : "customers match"} your filters.`}>
         <ButtonLink href="#" variant="secondary" size="sm">Export CSV</ButtonLink>
         <ButtonLink href="#" size="sm"><Plus className="h-4 w-4" />Add customer</ButtonLink>
       </PageHeader>

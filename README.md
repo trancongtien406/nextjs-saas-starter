@@ -9,7 +9,7 @@ billing, an analytics dashboard and realistic demo data — a foundation you can
 
 [![Watch the narrated demo video](docs/demo-video-poster.jpg)](docs/demo-video.mp4)
 
-**Demo video** (1920×1080, 55 s, English voice-over and captions; billing shown in demo mode without Stripe keys): [`docs/demo-video.mp4`](docs/demo-video.mp4)
+**Demo video** (1920×1080, 54 s, English voice-over and captions; billing shown in demo mode without Stripe keys): [`docs/demo-video.mp4`](docs/demo-video.mp4)
 
 <p align="center"><img src="docs/walkthrough.gif" alt="Walkthrough: landing, dashboard, customers, customer drawer, team invite, billing, activity" width="820" /></p>
 
